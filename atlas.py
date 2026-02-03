@@ -1,12 +1,19 @@
 from pathlib import Path
 
-def print_tree(directory, prefix=''):
-    for item in Path(directory).iterdir():
-        if item.name.startswith('.') or item.name == "bin" or item.name == "include" or item.name == "lib":
-            continue
-        print(f"{prefix}{item.name}")
+SKIP_PATTERNS = {'.git', '__pycache__', 'venv', '.venv', 'node_modules', 'bin', 'include', 'lib'}
+
+def print_tree(directory, prefix='', is_last=True):
+    items = [item for item in Path(directory).iterdir() 
+             if not item.name.startswith('.') and item.name not in SKIP_PATTERNS]
+    
+    for i, item in enumerate(items):
+        is_last_item = i == len(items) - 1
+        connector = "└── " if is_last_item else "├── "
+        print(f"{prefix}{connector}{item.name}")
+        
         if item.is_dir():
-            print_tree(item, prefix + "  ")
+            extension = "    " if is_last_item else "│   "
+            print_tree(item, prefix + extension, is_last_item)
 
 
 dir = input("Enter directory path:")
