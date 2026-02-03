@@ -14,8 +14,3 @@ def print_tree(directory, prefix='', is_last=True):
         if item.is_dir():
             extension = "    " if is_last_item else "│   "
             print_tree(item, prefix + extension, is_last_item)
-
-
-dir = input("Enter directory path:")
-
-print_tree(dir)
