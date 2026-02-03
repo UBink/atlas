@@ -4,7 +4,7 @@ A lightweight tool to visualize and understand code repository structure.
 
 ## Installation
 ```bash
-git clone https://github.com/yourusername/atlas.git
+git clone https://github.com/UBink/atlas.git
 cd atlas
 ```
 
