@@ -1,7 +1,7 @@
 - [x] v0.0.1 - Basic file listing
 - [x] v0.0.2 - ASCII tree diagram
 - [x] v0.0.3 - File type recognition and counts
-- [ ] v0.0.4 - Ignored folder recognition and display
-- [ ] v0.0.5 – Clearly mark folders vs files in output
+- [x] v0.0.4 - Ignored folder recognition and display
+- [x] v0.0.5 – Clearly mark folders vs files in output
 - [ ] v0.0.6 – Support loading GitHub repos directly, not just local codebases
 - [ ] v0.1.0 - Complete file structure analysis
