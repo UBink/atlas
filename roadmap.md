@@ -1,5 +1,5 @@
 - [x] v0.0.1 - Basic file listing
 - [x] v0.0.2 - ASCII tree diagram
-- [ ] v0.0.3 - File type recognition and counts
+- [x] v0.0.3 - File type recognition and counts
 - [ ] v0.0.4 - Ignored folder recognition and display
 - [ ] v0.1.0 - Complete file structure analysis
