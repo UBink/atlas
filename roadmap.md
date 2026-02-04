@@ -3,5 +3,7 @@
 - [x] v0.0.3 - File type recognition and counts
 - [x] v0.0.4 - Ignored folder recognition and display
 - [x] v0.0.5 – Clearly mark folders vs files in output
-- [ ] v0.0.6 – Support loading GitHub repos directly, not just local codebases
+- [x] v0.0.6 – Support loading GitHub repos directly, not just local codebases
 - [ ] v0.1.0 - Complete file structure analysis
+- [ ] v0.1.1	File level import extraction
+- [ ] v0.1.2	Repo level import summary
