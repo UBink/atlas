@@ -103,7 +103,7 @@ See [ROADMAP.md](ROADMAP.md) for planned features
 
 ## Current Version
 
-**v0.0.6** GitHub repository URL support
+**v0.1.0** Complete file structure analysis with polish
 
 ## Contributing
 

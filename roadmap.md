@@ -4,6 +4,9 @@
 - [x] v0.0.4 - Ignored folder recognition and display
 - [x] v0.0.5 – Clearly mark folders vs files in output
 - [x] v0.0.6 – Support loading GitHub repos directly, not just local codebases
-- [ ] v0.1.0 - Complete file structure analysis
+- [x] v0.1.0 - Complete file structure analysis
 - [ ] v0.1.1	File level import extraction
 - [ ] v0.1.2	Repo level import summary
+- [ ] v0.1.3	Ignore low signal files for dependency tracking
+- [ ] v0.1.4 - Distinguish external vs internal imports
+- [ ] v0.1.5 - Text based dependency graph visualization
