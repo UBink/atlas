@@ -23,9 +23,7 @@ def count_file_types(directory):
 
 def print_summary(file_counts):
     """Print file type summary."""
-    print("\n" + "="*40)
     print("File Summary:")
-    print("="*40)
     for ext, count in sorted(file_counts.items()):
         print(f"{ext}: {count}")
     print(f"\nTotal files: {sum(file_counts.values())}")

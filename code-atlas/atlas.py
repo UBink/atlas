@@ -5,7 +5,8 @@ from github_handler import (
     fetch_github_repo_structure, 
     print_github_tree,
     count_github_file_types,
-    print_github_summary
+    print_github_summary,
+    get_repo_stats
 )
 
 def is_github_url(input_str):
@@ -54,6 +55,12 @@ def main():
             print(f"\nFetching GitHub repo: {user_input}\n")
             structure, gitignore_content = fetch_github_repo_structure(user_input)
             print_github_tree(structure, gitignore_content)
+            stats = get_repo_stats(structure)
+            print("\n")
+            print(f"REPO SUMMARY")
+            print(f"Total Files: {stats['total_files']} ({stats['python_files']} Python)")
+            print(f"Dependencies: {', '.join(stats['unique_imports'])}")
+
     
     # Add file counting
             counts = count_github_file_types(structure)

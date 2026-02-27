@@ -3,6 +3,24 @@ from io import BytesIO
 from zipfile import ZipFile
 from pathlib import Path
 from collections import defaultdict
+import ast
+
+
+def get_imports_from_source(source_code):
+    """Extracts all top-level imports from a Python source string."""
+    try:
+        tree = ast.parse(source_code)
+        file_imports = set()
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    file_imports.add(alias.name)
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    file_imports.add(node.module)
+        return list(file_imports)
+    except (SyntaxError, UnicodeDecodeError):
+        return []
 
 def count_github_file_types(structure):
     file_counts = defaultdict(int)
@@ -21,12 +39,11 @@ def count_github_file_types(structure):
 def print_github_summary(file_counts):
     """Print file type summary for GitHub repos."""
     if not file_counts:
-        print("\n⚠️  No files found in repository")
+        print("\n No files found in repository")
         return
     
-    print("\n" + "=" * 40)
-    print("File Summary:")
-    print("=" * 40)
+    print("\n")
+    print("FILE SUMMARY:")
     for ext, count in sorted(file_counts.items()):
         print(f"{ext}: {count}")
     print(f"\nTotal files: {sum(file_counts.values())}")
@@ -38,7 +55,7 @@ def parse_github_url(url):
     url = url.rstrip('/').replace('.git', '')
     
     if url.startswith('http'):
-        # https://github.com/user/repo
+        # https://github.com/user/repo/branch
         parts = url.split('/')
         owner = parts[-2]
         repo = parts[-1]
@@ -66,31 +83,76 @@ def fetch_github_repo_structure(github_url):
     raise ValueError(f"Could not access repo. Check URL or try: main/master branch")
 
 def extract_structure_from_zip(zip_content, root_name):
-    """Extract file/folder structure from ZIP bytes."""
     structure = {}
-    gitignore_content = None  # Add this
+    gitignore_content = None
     zip_bytes = BytesIO(zip_content)
     
     with ZipFile(zip_bytes) as zip_file:
-        # First, find and read .gitignore
+        # 1. Find .gitignore first
         for file_info in zip_file.infolist():
             if file_info.filename.endswith('.gitignore'):
                 with zip_file.open(file_info) as f:
                     gitignore_content = f.read().decode('utf-8')
                 break
         
-        # Then build structure
+        # 2. Build structure and EXTRACT IMPORTS
         for file_info in zip_file.infolist():
-            # Remove the root folder name from path
             parts = file_info.filename.split('/', 1)
             if len(parts) > 1:
                 relative_path = parts[1]
-                structure[relative_path] = {
+                
+                # Default info
+                file_data = {
                     'is_dir': file_info.is_dir(),
-                    'size': file_info.file_size
+                    'size': file_info.file_size,
+                    'imports': [] # Added field
                 }
+
+                # If it's a Python file, parse it for imports
+                if not file_info.is_dir() and relative_path.endswith('.py'):
+                    with zip_file.open(file_info) as f:
+                        source = f.read().decode('utf-8', errors='ignore')
+                        file_data['imports'] = get_imports_from_source(source)
+
+                structure[relative_path] = file_data
     
-    return structure, gitignore_content  # Return BOTH
+    return structure, gitignore_content
+
+# --- MODIFIED: Tree printer to show imports ---
+def print_github_tree(structure, gitignore_content, prefix='', parent_path=''):
+    gitignore_patterns = parse_gitignore_content(gitignore_content)
+    items = {}
+    for path, info in structure.items():
+        if not path.startswith(parent_path): continue
+        remaining = path[len(parent_path):].lstrip('/')
+        if not remaining: continue
+        
+        first_part = remaining.split('/')[0]
+        if first_part not in items:
+            items[first_part] = {
+                'is_dir': '/' in remaining or info['is_dir'],
+                'full_path': (parent_path + first_part).rstrip('/'),
+                'imports': info.get('imports', []) # Carry imports over
+            }
+    
+    sorted_items = sorted(items.items())
+    for i, (name, info) in enumerate(sorted_items):
+        is_last = i == len(sorted_items) - 1
+        connector = "└── " if is_last else "├── "
+        is_ignored = should_ignore_github(info['full_path'], gitignore_patterns)
+        
+        if is_ignored and not info['is_dir']: continue
+        
+        # Display logic: add imports to the file name if they exist
+        import_str = f" -> imports: {', '.join(info['imports'])}" if info['imports'] else ""
+        display_name = f"{name}/" if info['is_dir'] else f"{name}{import_str}"
+        if is_ignored: display_name += " [ignored]"
+        
+        print(f"{prefix}{connector}{display_name}")
+        
+        if info['is_dir'] and not is_ignored:
+            print_github_tree(structure, gitignore_content, prefix + ("    " if is_last else "│   "), info['full_path'] + '/')
+
 
 SKIP_PATTERNS = {'.git', '__pycache__', 'venv', '.venv', 'node_modules', 
                  'bin', 'include', 'lib', 'dist', 'build', '.egg-info'}
@@ -132,52 +194,14 @@ def should_ignore_github(path, gitignore_patterns):
     
     return False
 
-def print_github_tree(structure, gitignore_content, prefix='', parent_path=''):
-    """Print GitHub repo structure in tree format with [ignored] tags."""
-    gitignore_patterns = parse_gitignore_content(gitignore_content)
+def get_repo_stats(structure):
+    """Summarizes the structure for the final output."""
+    all_imports = set()
+    for info in structure.values():
+        all_imports.update(info.get('imports', []))
     
-    # Group by immediate children
-    items = {}
-    for path, info in structure.items():
-        if not path.startswith(parent_path):
-            continue
-        
-        remaining = path[len(parent_path):].lstrip('/')
-        if not remaining:
-            continue
-        
-        first_part = remaining.split('/')[0]
-        if first_part not in items:
-            is_dir = '/' in remaining or info['is_dir']
-            full_path = (parent_path + first_part).rstrip('/')
-            
-            items[first_part] = {
-                'is_dir': is_dir,
-                'full_path': full_path
-            }
-    
-    sorted_items = sorted(items.items())
-    
-    for i, (name, info) in enumerate(sorted_items):
-        is_last = i == len(sorted_items) - 1
-        connector = "└── " if is_last else "├── "
-        
-        # Check if ignored
-        is_ignored = should_ignore_github(info['full_path'], gitignore_patterns)
-        
-        # Format display
-        if info['is_dir']:
-            display_name = f"{name}/" + (" [ignored]" if is_ignored else "")
-        else:
-            display_name = name + (" [ignored]" if is_ignored else "")
-        
-        # Skip ignored files, show ignored folders
-        if is_ignored and not info['is_dir']:
-            continue
-        
-        print(f"{prefix}{connector}{display_name}")
-        
-        # Recurse into non-ignored directories
-        if info['is_dir'] and not is_ignored:
-            extension = "    " if is_last else "│   "
-            print_github_tree(structure, gitignore_content, prefix + extension, info['full_path'] + '/')
+    return {
+        "total_files": len([f for f in structure if not structure[f]['is_dir']]),
+        "unique_imports": sorted(list(all_imports)),
+        "python_files": len([f for f in structure if f.endswith('.py')])
+    }
