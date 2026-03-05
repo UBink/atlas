@@ -1,12 +1,7 @@
-- [x] v0.0.1 - Basic file listing
-- [x] v0.0.2 - ASCII tree diagram
-- [x] v0.0.3 - File type recognition and counts
-- [x] v0.0.4 - Ignored folder recognition and display
-- [x] v0.0.5 – Clearly mark folders vs files in output
-- [x] v0.0.6 – Support loading GitHub repos directly, not just local codebases
-- [x] v0.1.0 - Complete file structure analysis
 - [x] v0.1.1	File level import extraction
 - [x] v0.1.2	Repo level import summary
 - [x] v0.1.3	Ignore low signal files for dependency tracking
 - [x] v0.1.4 - Distinguish external vs internal imports
 - [ ] v0.1.5 - Text based dependency graph visualization
+- [ ] v0.1.6 - Entry Point Identification
+- [ ] v0.2.0 - Deep Scan: Signature & Docstring extraction (The "Skeleton")
