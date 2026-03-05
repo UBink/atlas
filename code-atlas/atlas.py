@@ -28,7 +28,6 @@ def validate_input(user_input):
         return False
     
     user_input = user_input.strip()
-    
     # If it's a local path, check if it exists
     if not is_github_url(user_input):
         path = Path(user_input)
@@ -59,7 +58,11 @@ def main():
             print("\n")
             print(f"REPO SUMMARY")
             print(f"Total Files: {stats['total_files']} ({stats['python_files']} Python)")
-            print(f"Dependencies: {', '.join(stats['unique_imports'])}")
+            #print(f"Dependencies: {', '.join(stats['unique_imports'])}")
+            if stats['external']:
+                print(f"External Dependencies: {', '.join(stats['external'])}")
+            if stats['internal']:
+                print(f"Internal Links: {', '.join(stats['internal'])}")
 
     
     # Add file counting

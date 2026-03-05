@@ -4,7 +4,10 @@ from zipfile import ZipFile
 from pathlib import Path
 from collections import defaultdict
 import ast
+import sys
 
+#Get low signal import names
+low_signal_imports = sys.stdlib_module_names
 
 def get_imports_from_source(source_code):
     """Extracts all top-level imports from a Python source string."""
@@ -14,10 +17,13 @@ def get_imports_from_source(source_code):
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for alias in node.names:
-                    file_imports.add(alias.name)
+                    #Skip low signal imports
+                    if alias.name.split(".")[0] not in low_signal_imports:
+                        file_imports.add(alias.name)
             elif isinstance(node, ast.ImportFrom):
                 if node.module:
-                    file_imports.add(node.module)
+                    if node.module.split('.')[0] not in low_signal_imports:
+                        file_imports.add(node.module)
         return list(file_imports)
     except (SyntaxError, UnicodeDecodeError):
         return []
@@ -115,7 +121,7 @@ def extract_structure_from_zip(zip_content, root_name):
                         file_data['imports'] = get_imports_from_source(source)
 
                 structure[relative_path] = file_data
-    
+
     return structure, gitignore_content
 
 # --- MODIFIED: Tree printer to show imports ---
@@ -195,13 +201,21 @@ def should_ignore_github(path, gitignore_patterns):
     return False
 
 def get_repo_stats(structure):
-    """Summarizes the structure for the final output."""
-    all_imports = set()
-    for info in structure.values():
-        all_imports.update(info.get('imports', []))
-    
+    internal_names = {Path(path).stem for path in structure if path.endswith('.py')}
+    external_deps = set()
+    internal_links = set()
+
+    for path, info in structure.items():
+        for imp in info.get('imports', []):
+            root = imp.split('.')[0]
+            if root in internal_names:
+                internal_links.add(imp)
+            else:
+                external_deps.add(imp)
+
     return {
         "total_files": len([f for f in structure if not structure[f]['is_dir']]),
-        "unique_imports": sorted(list(all_imports)),
-        "python_files": len([f for f in structure if f.endswith('.py')])
+        "python_files": len(internal_names),
+        "external": sorted(list(external_deps)),
+        "internal": sorted(list(internal_links))
     }

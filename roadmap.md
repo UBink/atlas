@@ -7,6 +7,6 @@
 - [x] v0.1.0 - Complete file structure analysis
 - [x] v0.1.1	File level import extraction
 - [x] v0.1.2	Repo level import summary
-- [ ] v0.1.3	Ignore low signal files for dependency tracking
-- [ ] v0.1.4 - Distinguish external vs internal imports
+- [x] v0.1.3	Ignore low signal files for dependency tracking
+- [x] v0.1.4 - Distinguish external vs internal imports
 - [ ] v0.1.5 - Text based dependency graph visualization

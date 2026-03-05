@@ -1,21 +1,24 @@
 # atlas
 
-A lightweight tool to quickly understand code repository structure locally or from GitHub.
+A lightweight CLI tool to quickly understand code repository structure locally or from GitHub.
 
 ## Overview
 
-Atlas helps developers explore unfamiliar codebases by providing a clear, visual representation of the project structure with intelligent filtering and file type analysis. Analyze local projects or any public GitHub repository instantly.
+Atlas helps developers explore unfamiliar codebases by providing a clear, visual representation of project structure with intelligent filtering, file type analysis, and dependency tracking. Analyze local projects or any public GitHub repository instantly.
 
 ## Features
 
 - Clean ASCII tree visualization of directory structure
-- **GitHub URL support** : analyze any public repo without cloning
+- **GitHub URL support**: analyze any public repo without cloning
+- **Import extraction**: see what each Python file imports, inline in the tree
+- **Dependency summary**: repo-level view of external vs internal dependencies
+- **Low-signal filtering**: stdlib imports (os, sys, etc.) automatically hidden
 - Respects `.gitignore` and filters common build/dependency folders
 - File type recognition and statistics
 - Clear distinction between files and folders (folders marked with `/`)
 - Ignored folders labeled with `[ignored]` tag
-- **Secure** : GitHub repos are processed in memory only, nothing touches disk
-- Fast and lightweight : minimal dependencies
+- **Secure**: GitHub repos are processed in memory only, nothing touches disk
+- Fast and lightweight: minimal dependencies
 
 ## Installation
 
@@ -41,16 +44,16 @@ python atlas.py
 # Or: github.com/user/repo
 ```
 
-Atlas will automatically detect whether you've entered a local path or GitHub URL and analyze accordingly.
+Atlas automatically detects whether you've entered a local path or GitHub URL and analyzes accordingly.
 
-**Security Note:** When analyzing GitHub repositories, Atlas downloads the repo structure to memory only - no files are written to disk. The analysis is read-only and safe.
+**Security Note:** When analyzing GitHub repositories, Atlas downloads the repo structure to memory only  meaning no files are written to disk. The analysis is read-only and safe.
 
 ## Example Output
 
 ```
 my-project/
 ├── src/
-│   ├── main.py
+│   ├── main.py -> imports: requests, flask
 │   ├── utils.py
 │   └── __pycache__/ [ignored]
 ├── tests/
@@ -60,8 +63,13 @@ my-project/
 ├── README.md
 └── package.json
 
+REPO SUMMARY
+Total Files: 5 (3 Python)
+External Dependencies: requests, flask
+Internal Links: utils
+
 ========================================
-File Summary:
+FILE SUMMARY:
 ========================================
 .json: 1
 .md: 1
@@ -77,6 +85,7 @@ Atlas automatically ignores common build artifacts and dependencies:
 - Python: `__pycache__`, `*.pyc`, `venv/`, `.venv/`
 - Node.js: `node_modules/`
 - Build outputs: `dist/`, `build/`, `*.egg-info`
+- Standard library imports (`os`, `sys`, `pathlib`, etc.) in dependency tracking
 - Any patterns in the repository's `.gitignore` file
 
 Ignored folders are shown with an `[ignored]` tag but their contents are not displayed.
@@ -91,19 +100,20 @@ Atlas automatically detects the default branch (main, master, or develop).
 
 ## Use Cases
 
-- **Explore unfamiliar repos** - Quickly understand project structure before diving in
-- **Onboarding** - Help new team members understand codebase organization
-- **Code reviews** - Get a bird's-eye view of changes and structure
-- **Research** - Analyze multiple repos to compare architectures
-- **Learning** - Study how popular projects are organized
+- **Explore unfamiliar repos** — Quickly understand project structure before diving in
+- **Onboarding** — Help new team members understand codebase organization
+- **Dependency auditing** — See external vs internal imports at a glance
+- **Code reviews** — Get a bird's-eye view of changes and structure
+- **Research** — Analyze multiple repos to compare architectures
+- **Learning** — Study how popular projects are organized
 
 ## Roadmap
 
-See [ROADMAP.md](ROADMAP.md) for planned features
+See [ROADMAP.md](ROADMAP.md) for planned features.
 
 ## Current Version
 
-**v0.1.0** Complete file structure analysis with polish
+**v0.1.4** — Distinguish external vs internal imports
 
 ## Contributing
 
