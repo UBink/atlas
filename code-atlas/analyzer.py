@@ -76,3 +76,7 @@ def print_repo_summary(stats):
         print(f"External Dependencies: {', '.join(stats['external'])}")
     if stats['internal']:
         print(f"Internal Links: {', '.join(stats['internal'])}")
+
+def get_line_count(source_code):
+    """Count lines in source code string."""
+    return source_code.count('\n') + 1

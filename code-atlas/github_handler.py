@@ -2,7 +2,7 @@ import requests
 from io import BytesIO
 from zipfile import ZipFile
 from pathlib import Path
-from analyzer import get_imports_from_source
+from analyzer import get_imports_from_source , get_line_count
 
 SKIP_PATTERNS = {'.git', '__pycache__', 'venv', '.venv', 'node_modules',
                  'bin', 'include', 'lib', 'dist', 'build', '.egg-info'}
@@ -59,14 +59,16 @@ def extract_structure_from_zip(zip_content, root_name):
                 file_data = {
                     'is_dir': file_info.is_dir(),
                     'size': file_info.file_size,
-                    'imports': []
+                    'imports': [],
+                    'line_count': None
                 }
 
                 if not file_info.is_dir() and relative_path.endswith('.py'):
                     with zip_file.open(file_info) as f:
                         source = f.read().decode('utf-8', errors='ignore')
                         file_data['imports'] = get_imports_from_source(source)
-
+                        file_data['line_count'] = get_line_count(source)
+                
                 structure[relative_path] = file_data
 
     return structure, gitignore_content
@@ -132,8 +134,12 @@ def print_github_tree(structure, gitignore_content, prefix='', parent_path=''):
         if is_ignored and not info['is_dir']:
             continue
 
+        file_info = structure.get(info['full_path'])
+        line_count = file_info.get('line_count') if file_info else None
+        line_str = f" ({line_count} lines)" if line_count else ""
         import_str = f" -> imports: {', '.join(info['imports'])}" if info['imports'] else ""
-        display_name = f"{name}/" if info['is_dir'] else f"{name}{import_str}"
+        display_name = f"{name}/" if info['is_dir'] else f"{name}{line_str}{import_str}"
+
         if is_ignored:
             display_name += " [ignored]"
 

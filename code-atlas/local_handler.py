@@ -1,5 +1,5 @@
 from pathlib import Path
-from analyzer import get_imports_from_source
+from analyzer import get_imports_from_source, get_line_count
 
 SKIP_PATTERNS = {'.git', '__pycache__', 'venv', '.venv', 'node_modules',
                  'bin', 'include', 'lib', 'dist', 'build', '.egg-info'}
@@ -42,7 +42,6 @@ def get_structure(directory):
     gitignore_patterns = read_gitignore(directory)
 
     for item in root.rglob('*'):
-        # Skip hidden and ignored
         if any(part.startswith('.') for part in item.parts):
             continue
         if any(skip in item.parts for skip in SKIP_PATTERNS):
@@ -55,13 +54,15 @@ def get_structure(directory):
         file_data = {
             'is_dir': item.is_dir(),
             'size': item.stat().st_size if item.is_file() else 0,
-            'imports': []
+            'imports': [],
+            'line_count': None
         }
 
         if item.is_file() and item.suffix == '.py':
             try:
                 source = item.read_text(encoding='utf-8', errors='ignore')
                 file_data['imports'] = get_imports_from_source(source)
+                file_data['line_count'] = get_line_count(source)
             except (PermissionError, OSError):
                 pass
 
@@ -98,9 +99,12 @@ def print_tree(structure, directory, prefix='', parent_path=''):
         is_last = i == len(sorted_items) - 1
         connector = "└── " if is_last else "├── "
 
+        file_info = structure.get(info['full_path'].replace('/', '\\') if '\\' in list(structure.keys())[0] else info['full_path'])
+        line_count = file_info.get('line_count') if file_info else None
+        line_str = f" ({line_count} lines)" if line_count else ""
         import_str = f" -> imports: {', '.join(info['imports'])}" if info['imports'] else ""
-        display_name = f"{name}/" if info['is_dir'] else f"{name}{import_str}"
-
+        display_name = f"{name}/" if info['is_dir'] else f"{name}{line_str}{import_str}"
+    
         print(f"{prefix}{connector}{display_name}")
 
         if info['is_dir']:
